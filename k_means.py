@@ -28,9 +28,6 @@ x_tt = [[25, 79], [34, 51], [22, 53], [27, 78], [33, 59], [33, 74], [31, 73], [2
  #       'y': [79,51,53,78,59,74,73,57,69,75,51,32,40,47,53,36,35,58,59,50,25,20,14,12,20,5,29,27,8,7]
  #      }
 
-plt.scatter(*zip(*x_tt))
-plt.show()
-
 def euclidian_dist(input, centre):
     sum = 0
     for i in range(len(input)):
@@ -86,25 +83,23 @@ def lloyd_algorithm(input_data, nb_Representatives, plot):
                     if sum_clusters[i][len(sum_clusters[i]) - 1] != 0:
                         representatives[i][j] = sum_clusters[i][j] / sum_clusters[i][len(sum_clusters[i]) - 1]
 
+        if plot:
+            plt.scatter(*zip(*input_data))
+            plt.scatter(*zip(*representatives), c="red")
+            plt.show()
+
         # Comparaison ancien resultat / nouveau
         if (representatives == old_representative).all():
-            if plot:
-                plt.scatter(*zip(*input_data))
-                plt.scatter(*zip(*representatives), c="red")
-                plt.show()
             print("BREAK !!!")
             break
 
         print("ITERATION ====== ")
         print(iterations)
         iterations += 1
-        if plot:
-            plt.scatter(*zip(*input_data))
-            plt.scatter(*zip(*representatives), c="red")
-            plt.show()
-
+    return  representatives
 
 lloyd_algorithm(x_tt, 4, True)
+# representatives = lloyd_algorithm(x_train[:100], 10, False)
 
 
 

@@ -31,16 +31,16 @@ encoder = Dense(2, activation='softmax')(encoder)
 decoder = Flatten()(encoder)
 decoder = Dense(392, activation='softmax')(decoder)
 decoder = Reshape((7, 7, 8))(decoder)
-decoder=Conv2DTranspose(8, (3, 3), activation='relu', padding='same')(decoder)
-decoder=UpSampling2D((2, 2))(decoder)
-decoder=Conv2DTranspose(8, (3, 3), activation='relu', padding='same')(decoder)
-decoder=UpSampling2D((2, 2))(decoder)
-decoder=Conv2DTranspose(1, (3, 3), activation='relu', padding='same')(decoder)
+decoder = Conv2DTranspose(8, (3, 3), activation='relu', padding='same')(decoder)
+decoder = UpSampling2D((2, 2))(decoder)
+decoder = Conv2DTranspose(8, (3, 3), activation='relu', padding='same')(decoder)
+decoder = UpSampling2D((2, 2))(decoder)
+decoder = Conv2DTranspose(1, (3, 3), activation='relu', padding='same')(decoder)
 
 ###############################################
 
-autoencoder=Model(input, decoder)
-encoder=Model(input, encoder)
+autoencoder = Model(input, decoder)
+encoder = Model(input, encoder)
 
 autoencoder.compile(Adam(), mse, metrics=[categorical_accuracy])
 

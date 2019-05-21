@@ -24,7 +24,8 @@ print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.
 
 x_tt = [[1,1], [0, 2], [3, 2], [5,1], [4, 2], [6, 2], [1, -1], [0, -2], [3, -2]]
 
-plt.imshow(x_train)
+plt.scatter(*zip(*x_tt))
+plt.show()
 
 def euclidian_dist(input, centre):
     sum = 0
@@ -49,8 +50,6 @@ def lloyd_algorithm(input_data, nb_Representatives):
                 rds.append(rd)
             rd = random.randint(0, len(input_data) -1)
     rds.clear()
-
-    plt.imshow(representatives)
 
     # Répétition de l'algorithme
     while iterations < iterations_max:
@@ -91,9 +90,7 @@ def lloyd_algorithm(input_data, nb_Representatives):
         plt.show()
 
 
-
-
-lloyd_algorithm(x_train, 10)
+lloyd_algorithm(x_tt, 3)
 
 
 

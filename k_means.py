@@ -99,9 +99,18 @@ def lloyd_algorithm(input_data, nb_Representatives, plot):
     return  representatives
 
 lloyd_algorithm(x_tt, 4, True)
-# representatives = lloyd_algorithm(x_train[:100], 10, False)
 
-
+# representatives = lloyd_algorithm(x_train[:100], 12, False)
+# plt.figure(figsize=(40, 4))
+# for i in range(12):
+#     # display encoded images
+#     ax = plt.subplot(3, 20, i + 1 + 20)
+#     plt.imshow(representatives[i].reshape(28, 28))
+#     plt.gray()
+#     ax.get_xaxis().set_visible(False)
+#     ax.get_yaxis().set_visible(False)
+#
+# plt.show()
 
 
 

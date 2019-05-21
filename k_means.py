@@ -22,7 +22,11 @@ print("Normalize and flatten data...")
 print("x_train shape : " + str(x_train.shape) + " | y_train shape : " + str(y_train.shape))
 print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.shape))
 
-x_tt = [[1,1], [0, 2], [3, 2], [5,1], [4, 2], [6, 2], [1, -1], [0, -2], [3, -2]]
+x_tt = [[25, 79], [34, 51], [22, 53], [27, 78], [33, 59], [33, 74], [31, 73], [22, 57], [35, 69], [34, 75], [67, 51], [54, 32], [57, 40], [43, 47], [50, 53], [57, 36], [59, 35], [52, 58], [65, 59], [47, 50], [49, 25], [48, 20], [35, 14], [33, 12], [44, 20], [45, 5], [38, 29], [43, 27], [51, 8], [46, 7]]
+
+#Data = {'x': [25,34,22,27,33,33,31,22,35,34,67,54,57,43,50,57,59,52,65,47,49,48,35,33,44,45,38,43,51,46],
+ #       'y': [79,51,53,78,59,74,73,57,69,75,51,32,40,47,53,36,35,58,59,50,25,20,14,12,20,5,29,27,8,7]
+ #      }
 
 plt.scatter(*zip(*x_tt))
 plt.show()
@@ -33,7 +37,7 @@ def euclidian_dist(input, centre):
         sum += pow(input[i] - centre[i], 2)
     return np.sqrt(sum)
 
-def lloyd_algorithm(input_data, nb_Representatives):
+def lloyd_algorithm(input_data, nb_Representatives, plot):
     iterations = 0
     representatives = np.zeros([nb_Representatives, len(input_data[0])])
     iterations_max = 100
@@ -50,6 +54,10 @@ def lloyd_algorithm(input_data, nb_Representatives):
                 rds.append(rd)
             rd = random.randint(0, len(input_data) -1)
     rds.clear()
+    if plot:
+        plt.scatter(*zip(*input_data))
+        plt.scatter(*zip(*representatives), c="red")
+        plt.show()
 
     # Répétition de l'algorithme
     while iterations < iterations_max:
@@ -75,22 +83,28 @@ def lloyd_algorithm(input_data, nb_Representatives):
         for i in range(len(sum_clusters)):
             for j in range(len(sum_clusters[0])-1):
                 if sum_clusters[i][j] != 0:
-                    representatives[i][j] = sum_clusters[i][j] / sum_clusters[i][len(sum_clusters) - 1]
+                    if sum_clusters[i][len(sum_clusters[i]) - 1] != 0:
+                        representatives[i][j] = sum_clusters[i][j] / sum_clusters[i][len(sum_clusters[i]) - 1]
 
         # Comparaison ancien resultat / nouveau
         if (representatives == old_representative).all():
+            if plot:
+                plt.scatter(*zip(*input_data))
+                plt.scatter(*zip(*representatives), c="red")
+                plt.show()
             print("BREAK !!!")
             break
 
         print("ITERATION ====== ")
         print(iterations)
         iterations += 1
-        plt.scatter(*zip(*representatives))
-        plt.scatter(*zip(*x_tt))
-        plt.show()
+        if plot:
+            plt.scatter(*zip(*input_data))
+            plt.scatter(*zip(*representatives), c="red")
+            plt.show()
 
 
-lloyd_algorithm(x_tt, 3)
+lloyd_algorithm(x_tt, 4, True)
 
 
 

@@ -22,69 +22,78 @@ print("Normalize and flatten data...")
 print("x_train shape : " + str(x_train.shape) + " | y_train shape : " + str(y_train.shape))
 print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.shape))
 
-x_tt = [(1,1), (0, 2), (3, 2), (5,1), (4, 2), (6, 2), (1, -1), (0, -2), (3, -2)]
+x_tt = [[1,1], [0, 2], [3, 2], [5,1], [4, 2], [6, 2], [1, -1], [0, -2], [3, -2]]
 
-plt.scatter(*zip(*x_tt))
-plt.show()
+plt.imshow(x_train)
 
 def euclidian_dist(input, centre):
     sum = 0
     for i in range(len(input)):
-        sum += pow(input[i] + centre[i], 2)
+        sum += pow(input[i] - centre[i], 2)
     return np.sqrt(sum)
 
 def lloyd_algorithm(input_data, nb_Representatives):
     iterations = 0
-    representatives = {}
+    representatives = np.zeros([nb_Representatives, len(input_data[0])])
     iterations_max = 100
 
     # Initialisation des centres
+    rds = []
     for i in range(nb_Representatives):
-        check_if_already_present = True
-        rd = random.randint(0, len(input_data)-1)
-        rds = {}
-        while(check_if_already_present):
-            if(rd not in rds):
-                rds[i] = rd
+        rd = random.randint(0, len(input_data) - 1)
+        check_if_exists = True
+        while check_if_exists:
+            if rd not in rds:
+                check_if_exists = False
                 representatives[i] = input_data[rd]
-                check_if_already_present = False
-            rd = random.randint(0, len(input_data)-1)
+                rds.append(rd)
+            rd = random.randint(0, len(input_data) -1)
+    rds.clear()
 
-    print("FIRST REP")
-    print(representatives)
+    plt.imshow(representatives)
+
     # Répétition de l'algorithme
-    old_clusters = {}
     while iterations < iterations_max:
-        clusters = {}
-        dict_dist = {}
+
         # Allocation au centre le plus proche
+        clusters = {}
+        distances = {}
         for i in range(len(input_data)):
             for j in range(len(representatives)):
-                dict_dist[euclidian_dist(input_data[i],representatives[j])] =  j
-            clusters[i] = dict_dist[min(dict_dist.keys())]
+                distances[euclidian_dist(input_data[i], representatives[j])] = j
+            clusters[i] = distances[min(distances.keys())]
+            distances.clear()
 
         #Recalcul des centres
-        sum_clusters = {}
-        for i in range(len(clusters)):
-            sum_clusters[i] = {}
-            for j in range(len(input_data[i])):
-                sum_clusters[i][j] = 0
-        for i in range(len(clusters)):
-            for j in range(len(input_data[i])):
+        sum_clusters = np.zeros([nb_Representatives, len(representatives[0]) + 1])
+        for i in range(len(input_data)):
+            for j in range(len(input_data[0])):
                 sum_clusters[clusters[i]][j] += input_data[i][j]
+            sum_clusters[clusters[i]][len(representatives[0])] += 1
 
-        old_representatives = representatives
+        old_representative = representatives
+        representatives = np.zeros([nb_Representatives, len(input_data[0])])
         for i in range(len(sum_clusters)):
-            for j in range(len(sum_clusters[i])):
-                representatives[i][j] = sum(sum_clusters[i].values()) / len(sum_clusters[i])
-        print("NEW REP")
-        print(representatives)
-        # Comparaison ancien resultat / nouveau
-        if old_clusters == clusters or old_representatives == representatives:
-            break
-        old_clusters = clusters
+            for j in range(len(sum_clusters[0])-1):
+                if sum_clusters[i][j] != 0:
+                    representatives[i][j] = sum_clusters[i][j] / sum_clusters[i][len(sum_clusters) - 1]
 
-lloyd_algorithm(x_tt, 3)
+        # Comparaison ancien resultat / nouveau
+        if (representatives == old_representative).all():
+            print("BREAK !!!")
+            break
+
+        print("ITERATION ====== ")
+        print(iterations)
+        iterations += 1
+        plt.scatter(*zip(*representatives))
+        plt.scatter(*zip(*x_tt))
+        plt.show()
+
+
+
+
+lloyd_algorithm(x_train, 10)
 
 
 

@@ -1,0 +1,21 @@
+iterations_max : 200 - batch_size : 2000 - latent_space_dim : 42 - nb_data : 60000
+file : 1558556206 - Iteration : 0
+file : 1558556208 - Iteration : 10
+file : 1558556211 - Iteration : 20
+file : 1558556214 - Iteration : 30
+file : 1558556217 - Iteration : 40
+file : 1558556220 - Iteration : 50
+file : 1558556223 - Iteration : 60
+file : 1558556226 - Iteration : 70
+file : 1558556229 - Iteration : 80
+file : 1558556232 - Iteration : 90
+file : 1558556235 - Iteration : 100
+file : 1558556238 - Iteration : 110
+file : 1558556241 - Iteration : 120
+file : 1558556243 - Iteration : 130
+file : 1558556246 - Iteration : 140
+file : 1558556249 - Iteration : 150
+file : 1558556252 - Iteration : 160
+file : 1558556255 - Iteration : 170
+file : 1558556258 - Iteration : 180
+file : 1558556261 - Iteration : 190

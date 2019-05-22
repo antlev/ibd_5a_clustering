@@ -16,15 +16,17 @@ print (x_test.shape)
 
 def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_dim=32, batch_size=2000, save_res=False, save_iter=1000):
     seconds = time.time()
-    folder = str("logs/gan_" + str(int(time.time())) + "/")
-    logs_info = folder + "info"
-    os.mkdir(folder)
     nb_data = data.shape[0]
     data_shape = data.shape[1]
 
-    file = open(logs_info, "w")
-    file.write("iterations_max : " + str(iterations_max) + " - batch_size : " + str(batch_size) + " - latent_space_dim : " + str(latent_space_dim) + " - nb_data : " + str(nb_data) + "\n")
-    file.close()
+    if save_res:
+        folder = str("logs/gan_" + str(int(time.time())) + "/")
+        logs_info = folder + "info"
+        os.mkdir(folder)
+        file = open(logs_info, "w")
+        file.write("iterations_max : " + str(iterations_max) + " - batch_size : " + str(
+            batch_size) + " - latent_space_dim : " + str(latent_space_dim) + " - nb_data : " + str(nb_data) + "\n")
+        file.close()
 
     input = Input(shape=(784,))
     decoder = Dense(data_shape, activation='sigmoid')(input)

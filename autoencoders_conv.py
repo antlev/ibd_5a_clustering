@@ -1,12 +1,11 @@
 import keras
-from PIL import Image
 from keras.callbacks import *
 from keras.datasets import *
 from keras.layers import *
 from keras.models import *
 from matplotlib import pyplot as plt
 
-experiment_name = "Mnist_Conv2D_auto_Encoders_adam/adam_10E"
+experiment_name = "Mnist_Conv2D_auto_Encoders_adadelta_10E"
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 y_train = keras.utils.to_categorical(y_train)
@@ -20,32 +19,34 @@ tb_callback = TensorBoard("./logs/" + experiment_name)
 ##########################################################
 
 input = Input(shape=(28, 28, 1))
-encoder = Conv2D(16, (3, 3), activation='relu', padding='same', input_shape=(28, 28, 1))(input)
+encoder = Conv2D(16, (3, 3), activation=LeakyReLU(0.3), padding='same', input_shape=(28, 28, 1))(input)
 encoder = MaxPooling2D((2, 2), padding='same')(encoder)
-encoder = Conv2D(8, (3, 3), activation='relu', padding='same')(encoder)
+encoder = Conv2D(8, (3, 3), activation=LeakyReLU(0.3), padding='same')(encoder)
 encoder = MaxPooling2D((2, 2), padding='same')(encoder)
-encoder = Conv2D(8, (3, 3), activation='relu', padding='same', input_shape=(28, 28, 1))(encoder)
+encoder = Conv2D(8, (3, 3), activation=LeakyReLU(0.3), padding='same', input_shape=(28, 28, 1))(encoder)
 encoder = MaxPooling2D((2, 2), padding='same')(encoder)
-encoder = Flatten()(encoder)
-encoder = Dense(2, activation='relu')(encoder)
-decoder = Dense(392, activation='relu')(encoder)
+
+decoder = Flatten()(encoder)
+encoder = Dense(2, activation=LeakyReLU(0.3))(encoder)
+decoder = Dense(392, activation=LeakyReLU(0.3))(decoder)
 decoder = Reshape((7, 7, 8))(decoder)
-decoder = Conv2DTranspose(8, (3, 3), activation='relu', padding='same')(decoder)
+
+decoder = Conv2DTranspose(8, (3, 3), activation=LeakyReLU(0.3), padding='same')(decoder)
 decoder = UpSampling2D((2, 2))(decoder)
-decoder = Conv2DTranspose(8, (3, 3), activation='relu', padding='same')(decoder)
+decoder = Conv2DTranspose(8, (3, 3), activation=LeakyReLU(0.3), padding='same')(decoder)
 decoder = UpSampling2D((2, 2))(decoder)
-decoder = Conv2DTranspose(1, (3, 3), activation='relu', padding='same')(decoder)
+decoder = Conv2DTranspose(1, (3, 3), activation=LeakyReLU(0.3), padding='same')(decoder)
 
 ###############################################
 
 autoencoder = Model(input, decoder)
 encoder = Model(input, encoder)
 
-autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
 
 autoencoder.fit(x_train, x_train,
-                batch_size=128,
-                epochs=5,
+                batch_size=256,
+                epochs=15,
                 shuffle=True,
                 callbacks=[tb_callback])
 

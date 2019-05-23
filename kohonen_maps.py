@@ -63,7 +63,7 @@ def find_representative_index_by_value(w_i, best_representative):
             return i
 
 # NB représentants = nb representants sur x et sur y
-def kohonen_maps(input_data, nb_representants):
+def kohonen_maps(input_data, nb_representants, plot = False):
     # Définir les coordonnées des Wi sur 0 - 1 pour les x et y
     map = build_map(nb_representants)
 
@@ -95,16 +95,52 @@ def kohonen_maps(input_data, nb_representants):
         neighbours = find_neighbours(w_i, best_representative)
         for i in neighbours:
             w_i[i] = modify_feature_vector(map[find_representative_index_by_value(w_i, i)], map[index], sample, alpha, gamma)
-        plt.scatter(*zip(*input_data), c="blue")
-        plt.scatter(*zip(*w_i), c="red")
-        plt.show()
+        if plot:
+            plt.scatter(*zip(*input_data), c="blue")
+            plt.scatter(*zip(*w_i), c="red")
+            plt.show()
         iteration = ++iteration
     return w_i
 
-x_tt = [[25, 79], [34, 51], [22, 53], [27, 78], [33, 59], [33, 74], [31, 73], [22, 57], [35, 69], [34, 75], [67, 51], [54, 32], [57, 40], [43, 47], [50, 53], [57, 36], [59, 35], [52, 58], [65, 59], [47, 50], [49, 25], [48, 20], [35, 14], [33, 12], [44, 20], [45, 5], [38, 29], [43, 27], [51, 8], [46, 7]]
-rep = kohonen_maps(x_tt, 3)
-plt.scatter(*zip(*x_tt), c="blue")
-plt.scatter(*zip(*rep), c="red")
-plt.axis([0, 1, 0, 1])
-plt.show()
+#x_tt = [[25, 79], [34, 51], [22, 53], [27, 78], [33, 59], [33, 74], [31, 73], [22, 57], [35, 69], [34, 75], [67, 51], [54, 32], [57, 40], [43, 47], [50, 53], [57, 36], [59, 35], [52, 58], [65, 59], [47, 50], [49, 25], [48, 20], [35, 14], [33, 12], [44, 20], [45, 5], [38, 29], [43, 27], [51, 8], [46, 7]]
+#rep = kohonen_maps(x_tt, 3)
+#plt.scatter(*zip(*x_tt), c="blue")
+#plt.scatter(*zip(*rep), c="red")
+#plt.axis([0, 1, 0, 1])
+#plt.show()
+
 #print(np.array(x_tt))
+
+print("Loading data from Mnist...")
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Normalise data
+x_train = x_train.astype('float32') / 255.
+x_test = x_test.astype('float32') / 255.
+
+# Flatten the data to have 784 inputs instead of 28x28
+x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
+x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+
+print("Normalize and flatten data...")
+print("x_train shape : " + str(x_train.shape) + " | y_train shape : " + str(y_train.shape))
+print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.shape))
+
+representatives = kohonen_maps(x_train[:1000], 12)
+plt.figure(figsize=(40, 4))
+for i in range(12):
+      #display encoded images
+      ax = plt.subplot(3, 20, i + 1 + 20)
+      plt.imshow(representatives[i].reshape(28, 28))
+      plt.gray()
+      ax.get_xaxis().set_visible(False)
+      ax.get_yaxis().set_visible(False)
+plt.show()
+
+#Representation 2D
+#rep = kohonen_maps(x_train[:1000], 2, False)
+#coordinates = []
+#for i in x_train[:1000]:
+#    coordinates.append([euclidian_dist(i, rep[0]), euclidian_dist(i, rep[1])])
+#plt.scatter(*zip(*coordinates), c=y_train[:1000])
+#plt.show()

@@ -1,13 +1,6 @@
 import time, os, random
 import tensorflow as tf
 from matplotlib import pyplot as plt
-
-# from keras.layers import Input, Dense, LeakyReLU
-# from keras.models import Model
-# from keras.datasets import mnist
-# import numpy as np
-# from keras import backend as K
-# print(K.tensorflow_backend._get_available_gpus())
 import numpy as np
 from tensorflow.python.keras import Input, Model
 from tensorflow.python.keras.layers import Dense, LeakyReLU, BatchNormalization
@@ -129,6 +122,7 @@ def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_di
         # Generate noise in latent_space shape and train the whole network
         generator_and_discriminator.train_on_batch(np.random.random((batch_size, latent_space_dim)), np.full(batch_size, 1))
         if save_res and iterations%save_iter == 0:
+            generate_grid(generator_model, 10, latent_space_dim)
             filename=str(int(time.time()))
             np.save(folder + filename, generator_model.predict(np.random.rand(1, latent_space_dim)))
             file = open(logs_info, "a+")
@@ -138,6 +132,7 @@ def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_di
     print("Time to finish : " + str(int(time.time()-seconds)) + " sec batch_size = " + str(batch_size) + " (iterations:" + str(iterations_max) + ")")
     if save_res:
         print("data generated from generator are saved in : " + folder)
+    generate_grid(generator_model, 10, latent_space_dim)
     return generator_model, discriminator_model, generator_and_discriminator
 
 def load_and_show(gan_folder="gan_1558556204"):
@@ -158,6 +153,17 @@ def generate_test_images(generator, nb_images, latent_space_dim=2):
         plt.gray()
         plt.show()
 
+def generate_grid(generator, grid_size, latent_space_dim=2):
+    fig = plt.figure(figsize=(50, 50))
+    columns = 10
+    rows = 10
+    for i in range(1, columns * rows + 1):
+        img = generator.predict(np.array([[0.1*i/columns, 0.1*i%columns]])).reshape(28, 28)
+        fig.add_subplot(rows, columns, i)
+        plt.imshow(img)
+        plt.gray()
+    plt.show()
+
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 # (x_train, y_train), (x_test, y_test) = mnist.load_data()
 x_train = x_train.astype('float32') / 255.
@@ -165,10 +171,14 @@ x_test = x_test.astype('float32') / 255.
 x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
 
-# generator, discriminator, generator_and_discriminator = my_gan(x_train,latent_space_dim=2,n_iterations_on_disc=2,  iterations_max=100000, batch_size=32, save_res=True, save_iter=5000)
-# generate_test_images(generator, 10, latent_space_dim=2)
+generator, discriminator, generator_and_discriminator = my_gan(x_train,
+                                                               latent_space_dim=2,
+                                                               n_iterations_on_disc=2,
+                                                               iterations_max=1000000,
+                                                               batch_size=32,
+                                                               save_res=True,
+                                                               save_iter=10000)
 
-
-
-load_and_show(gan_folder="gan_1558610494")
+generate_grid(generator, 10, 2)
+# load_and_show(gan_folder="gan_1558610494")
 

@@ -116,6 +116,18 @@ def load_and_show(gan_folder="gan_1558556204"):
             plt.show()
 
 
+def generate_grid(generator, grid_size, latent_space_dim=2):
+    fig = plt.figure(figsize=(50, 50))
+    columns = 10
+    rows = 10
+    for i in range(1, columns * rows + 1):
+        img = generator.predict(np.array([[0.1 * i / columns, 0.1 * i % columns]])).reshape(28, 28)
+        fig.add_subplot(rows, columns, i)
+        plt.imshow(img)
+        plt.gray()
+    plt.show()
+
+
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 # (x_train, y_train), (x_test, y_test) = mnist.load_data()
 x_train = x_train.astype('float32') / 255.
@@ -124,11 +136,11 @@ x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
 
 latent_space_dim = 20
-generator, discriminator, generator_and_discriminator = my_gan(x_train,
-                                                               latent_space_dim=latent_space_dim,
-                                                               n_iterations_on_disc=1,
-                                                               iterations_max=10000,
-                                                               batch_size=32,
-                                                               save_res=True, save_iter=1000)
-
-# load_and_show(gan_folder="gan_1558618435")
+# generator, discriminator, generator_and_discriminator = my_gan(x_train,
+#                                                                latent_space_dim=latent_space_dim,
+#                                                                n_iterations_on_disc=1,
+#                                                                iterations_max=10000,
+#                                                                batch_size=32,
+#                                                                save_res=True, save_iter=1000)
+# generate_grid(generator, 10, 2)
+load_and_show(gan_folder="gan_1558621375")

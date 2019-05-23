@@ -1,3 +1,7 @@
+# %% md
+# MNIST import
+# %%
+
 import keras
 from keras.callbacks import *
 from keras.datasets import *

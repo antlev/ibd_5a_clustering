@@ -23,5 +23,6 @@ for idx, classe in enumerate(directory):
 x = np.asarray(list_image)
 y = np.asarray(list_labels)
 
+
 np.save("test_images28.npy", x)
 np.save("test_labels28.npy", y)

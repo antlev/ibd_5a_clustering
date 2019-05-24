@@ -1,6 +1,5 @@
 import keras
 from keras.callbacks import *
-from keras.datasets import *
 from keras.layers import *
 from keras.metrics import *
 from keras.models import *
@@ -8,16 +7,13 @@ from keras.optimizers import *
 from keras_preprocessing.image import ImageDataGenerator
 from matplotlib import pyplot as plt
 
-
-
 experiment_name = "Mnist_Conv2D_auto_Encoders_test"
 
 train_data_dir = '/home/soat/ibd_5a_clustering/fruits-360/test_images28.npy'
 nb_train_samples = 17845
 batch_size = 256
 
-(x_train, y_train), (x_test, y_test) = train_data_dir
-x_train = np.load(train_data_dir)
+(x_train, y_train), (x_test, y_test) = np.load(train_data_dir)
 
 print(x_train.shape)
 exit(0)

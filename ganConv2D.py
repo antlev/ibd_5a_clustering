@@ -4,9 +4,30 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from keras.layers import Input, Dense, LeakyReLU, Conv2D, MaxPooling2D, Flatten, Conv2DTranspose, UpSampling2D, Reshape
+from keras.layers import Input, Dense, LeakyReLU, Conv2D, MaxPooling2D, Flatten, Conv2DTranspose, UpSampling2D, Reshape, \
+    K
 from keras.models import Model
 from matplotlib import pyplot as plt
+
+from tensorboard_logger import configure, log_value
+
+configure("./logs/1234", flush_secs=5)
+
+
+def wasserstein_loss(y_true, y_pred):
+    """Calculates the Wasserstein loss for a sample batch.
+    The Wasserstein loss function is very simple to calculate. In a standard GAN, the
+    discriminator has a sigmoid output, representing the probability that samples are
+    real or generated. In Wasserstein GANs, however, the output is linear with no
+    activation function! Instead of being constrained to [0, 1], the discriminator wants
+    to make the distance between its output for real and generated samples as
+    large as possible.
+    The most natural way to achieve this is to label generated samples -1 and real
+    samples 1, instead of the 0 and 1 used in normal GANs, so that multiplying the
+    outputs by the labels will give you the loss immediately.
+    Note that the nature of this loss means that it can be (and frequently will be)
+    less than 0."""
+    return K.mean(y_true * y_pred)
 
 
 def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_dim=2, batch_size=256, save_res=False,
@@ -36,7 +57,7 @@ def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_di
     discriminator = Dense(1, activation='sigmoid')(discriminator)
 
     discriminator_model = Model(input, discriminator)
-    discriminator_model.compile(optimizer='adam', loss='mse')
+    discriminator_model.compile(optimizer='adam', loss=wasserstein_loss)
 
     discriminator.trainable = False
 
@@ -51,13 +72,13 @@ def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_di
     generator = Conv2DTranspose(1, (3, 3), activation=LeakyReLU(0.3), padding='same')(generator)
 
     generator_model = Model(latent_space_input, generator)
-    generator_model.compile(optimizer='adam', loss='mse')
+    generator_model.compile(optimizer='adam', loss=wasserstein_loss)
 
     encoded_data = generator_model(latent_space_input)
     output = discriminator_model(encoded_data)
 
     generator_and_discriminator = Model(latent_space_input, output)
-    generator_and_discriminator.compile(optimizer='adam', loss='mse')
+    generator_and_discriminator.compile(optimizer='adam', loss=wasserstein_loss)
 
     iterations = 0
 
@@ -86,11 +107,13 @@ def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_di
         batch_to_train_x = batch_to_train_x[shuffled_indexes]
         batch_to_train_y = batch_to_train_y[shuffled_indexes]
         for i in range(n_iterations_on_disc):
-            discriminator_model.train_on_batch(batch_to_train_x, batch_to_train_y)
+            loss = discriminator_model.train_on_batch(batch_to_train_x, batch_to_train_y)
+            log_value('d_loss', loss, iterations)
         # Generator Learning
         # Generate noise in latent_space shape and train the whole network
-        generator_and_discriminator.train_on_batch(np.random.random((batch_size, latent_space_dim)),
+        loss = generator_and_discriminator.train_on_batch(np.random.random((batch_size, latent_space_dim)),
                                                    np.full(batch_size, 1))
+        log_value('g_loss', loss, iterations)
         if save_res and iterations % save_iter == 0:
             filename = str(int(time.time()))
             np.save(folder + filename, generator_model.predict(np.random.rand(1, latent_space_dim)))
@@ -136,11 +159,12 @@ x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
 
 latent_space_dim = 20
-# generator, discriminator, generator_and_discriminator = my_gan(x_train,
-#                                                                latent_space_dim=latent_space_dim,
-#                                                                n_iterations_on_disc=1,
-#                                                                iterations_max=10000,
-#                                                                batch_size=32,
-#                                                                save_res=True, save_iter=1000)
-# generate_grid(generator, 10, 2)
-load_and_show(gan_folder="gan_1558621375")
+generator, discriminator, generator_and_discriminator = my_gan(x_train,
+                                                               latent_space_dim=latent_space_dim,
+                                                               n_iterations_on_disc=1,
+                                                               iterations_max=10000,
+                                                               batch_size=32,
+                                                               save_res=True,
+                                                               save_iter=1000)
+generate_grid(generator, 10, 2)
+# load_and_show(gan_folder="gan_1558621375")

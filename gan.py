@@ -1,39 +1,42 @@
-import time, os, random
+import os
+import random
+import time
+
+import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
-import numpy as np
-from tensorflow.python.keras import Input, Model
-from tensorflow.python.keras.layers import Dense, LeakyReLU, BatchNormalization
 from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.python.keras import Input, Model
+from tensorflow.python.keras.layers import Dense, LeakyReLU
 
 
-def create_model(data_shape, latent_space_dim ):
 
+def create_model(data_shape, latent_space_dim):
     input = Input(shape=(784,))
     discriminator = Dense(data_shape)(input)
-    discriminator  = LeakyReLU()(discriminator )
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
-    discriminator  = Dense(512)(discriminator )
-    discriminator  = LeakyReLU()(discriminator )
+    discriminator = Dense(512)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
-    discriminator  = Dense(256)(discriminator )
-    discriminator  = LeakyReLU()(discriminator )
+    discriminator = Dense(256)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
-    discriminator  = Dense(256)(discriminator )
-    discriminator  = LeakyReLU()(discriminator )
+    discriminator = Dense(256)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
-    discriminator  = Dense(128)(discriminator )
-    discriminator  = LeakyReLU()(discriminator )
+    discriminator = Dense(128)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
-    discriminator  = Dense(64)(discriminator )
-    discriminator  = LeakyReLU()(discriminator )
+    discriminator = Dense(64)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
-    discriminator  = Dense(1, activation='sigmoid')(discriminator )
+    discriminator = Dense(1, activation='sigmoid')(discriminator)
 
-    discriminator_model = Model(input, discriminator )
+    discriminator_model = Model(input, discriminator)
     discriminator_model.compile(optimizer='adam', loss='mse')
 
-    discriminator .trainable = False
+    discriminator.trainable = False
 
     latent_space_input = Input(shape=(latent_space_dim,))
     generator = Dense(64)(latent_space_input)
@@ -65,29 +68,32 @@ def create_model(data_shape, latent_space_dim ):
 
     return generator_and_discriminator, generator_model, discriminator_model
 
-def named_logs(model, logs):
-  result = {}
-  for l in zip(model.metrics_names, [logs]):
-    result[l[0]] = l[1]
-  return result
 
-def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_dim=32, batch_size=256, save_res=False, save_iter=1000):
+def named_logs(model, logs):
+    result = {}
+    for l in zip(model.metrics_names, [logs]):
+        result[l[0]] = l[1]
+    return result
+
+
+def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_dim=32, batch_size=256, save_res=False,
+           save_iter=1000):
     seconds = int(time.time())
     nb_data = data.shape[0]
     data_shape = data.shape[1]
     discriminator_tensorboard = TensorBoard(
-      log_dir='./logs/' + str(seconds) + '/discriminator',
-      histogram_freq=0,
-      batch_size=batch_size,
-      write_graph=True,
-      write_grads=True
+        log_dir='./logs/' + str(seconds) + '/discriminator',
+        histogram_freq=0,
+        batch_size=batch_size,
+        write_graph=True,
+        write_grads=True
     )
     gen_disc_tensorboard = TensorBoard(
-      log_dir='./logs/' + str(seconds) + '/gen_disc',
-      histogram_freq=0,
-      batch_size=batch_size,
-      write_graph=True,
-      write_grads=True
+        log_dir='./logs/' + str(seconds) + '/gen_disc',
+        histogram_freq=0,
+        batch_size=batch_size,
+        write_graph=True,
+        write_grads=True
     )
 
     generator_and_discriminator, generator_model, discriminator_model = create_model(data_shape, latent_space_dim)
@@ -133,34 +139,38 @@ def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_di
                 discriminator_tensorboard.on_epoch_end(iterations, named_logs(discriminator_model, discriminator_logs))
         ### Generator Learning
         # Generate noise in latent_space shape and train the whole network
-        gen_disc_logs = generator_and_discriminator.train_on_batch(np.random.random((batch_size, latent_space_dim)), np.full(batch_size, 1))
+        gen_disc_logs = generator_and_discriminator.train_on_batch(np.random.random((batch_size, latent_space_dim)),
+                                                                   np.full(batch_size, 1))
         gen_disc_tensorboard.on_epoch_end(iterations, named_logs(generator_and_discriminator, gen_disc_logs))
 
-        if save_res and iterations%save_iter == 0:
+        if save_res and iterations % save_iter == 0:
             generate_grid(generator_model, 10, latent_space_dim)
-            filename=str(int(time.time()))
+            filename = str(int(time.time()))
             np.save(folder + filename, generator_model.predict(np.random.rand(1, latent_space_dim)))
             file = open(logs_info, "a+")
             file.write("file : " + filename + " - Iteration : %d\n" % iterations)
             file.close()
         iterations += 1
-    print("Time to finish : " + str(int(time.time()-seconds)) + " sec batch_size = " + str(batch_size) + " (iterations:" + str(iterations_max) + ")")
+    print("Time to finish : " + str(int(time.time() - seconds)) + " sec batch_size = " + str(
+        batch_size) + " (iterations:" + str(iterations_max) + ")")
     if save_res:
         print("data generated from generator are saved in : " + folder)
     generate_grid(generator_model, 10, latent_space_dim)
     return generator_model, discriminator_model, generator_and_discriminator
 
+
 def load_and_show(gan_folder="gan_1558556204"):
-    directory="logs/" + gan_folder + "/"
+    directory = "logs/" + gan_folder + "/"
     from os import listdir
     from os.path import isfile, join
     files = [f for f in listdir(directory) if isfile(join(directory, f))]
-    print("found " + str(len(files)-1) + " files !")
+    print("found " + str(len(files) - 1) + " files !")
     for i in range(len(files)):
         if files[i] != "info":
             plt.imshow(np.load(directory + files[i]).reshape(28, 28))
             plt.gray()
             plt.show()
+
 
 def generate_test_images(generator, nb_images, latent_space_dim=2):
     for i in range(nb_images):
@@ -168,16 +178,18 @@ def generate_test_images(generator, nb_images, latent_space_dim=2):
         plt.gray()
         plt.show()
 
+
 def generate_grid(generator, grid_size, latent_space_dim=2):
     fig = plt.figure(figsize=(50, 50))
     columns = 10
     rows = 10
     for i in range(1, columns * rows + 1):
-        img = generator.predict(np.array([[0.1*i/columns, 0.1*i%columns]])).reshape(28, 28)
+        img = generator.predict(np.array([[0.1 * i / columns, 0.1 * i % columns]])).reshape(28, 28)
         fig.add_subplot(rows, columns, i)
         plt.imshow(img)
         plt.gray()
     plt.show()
+
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train = x_train.astype('float32') / 255.

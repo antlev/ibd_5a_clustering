@@ -15,7 +15,8 @@ for idx, classe in enumerate(directory):
     for i in tmp:
         img = cv2.imread('Test/' + classe + "/" + i)
         image = cv2.resize(img, (28, 28))
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # _, black = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
 
         list_image.append(image)
         list_labels.append(idx)
@@ -23,6 +24,5 @@ for idx, classe in enumerate(directory):
 x = np.asarray(list_image)
 y = np.asarray(list_labels)
 
-
-np.save("test_images28.npy", x)
-np.save("test_labels28.npy", y)
+np.save("images28color.npy", x)
+np.save("label28color.npy", y)

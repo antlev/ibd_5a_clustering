@@ -13,9 +13,9 @@ def build_map(nb_representants):
   for i in np.arange(step, 1 - step/2, step):
     for j in np.arange(step, 1 - step/2, step):
       map.append([i, j])
-  plt.scatter(*zip(*map), c="red")
-  plt.axis([0, 1, 0, 1])
-  plt.show()
+  #plt.scatter(*zip(*map), c="red")
+  #plt.axis([0, 1, 0, 1])
+  #plt.show()
   return map
 
 def put_features_with_data(input_data, map):
@@ -133,9 +133,9 @@ print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.
 #representatives = kohonen_maps(x_train[:1000], 15)
 #plt.figure(figsize=(40, 40))
 #for i in range(len(representatives)):
-#      #display encoded images
+      #display encoded images
 #      ax = plt.subplot(21, 20, i +1 )
-#      plt.imshow(representatives[i].reshape(28, 28))
+#     plt.imshow(representatives[i].reshape(28, 28))
 #      plt.gray()
 #      ax.get_xaxis().set_visible(False)
 #      ax.get_yaxis().set_visible(False)
@@ -150,19 +150,43 @@ print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.
 #plt.scatter(*zip(*coordinates), c=y_train[:1000])
 #plt.show()
 
+def random_sample(data, nb_data):
+    rds = []
+    sample = []
+    for i in range(nb_data):
+        rd = random.randint(0, len(data) - 1)
+        check_if_exists = True
+        while check_if_exists:
+            if rd not in rds:
+                check_if_exists = False
+                sample.append(data[rd])
+                rds.append(rd)
+            rd = random.randint(0, len(data) - 1)
+    rds.clear()
+    return sample
+
+
 #Essai Dataset choisi : fruits
 x_fruits = np.load("../fruits/fruits-360/test_images28.npy")
 x_fruits = x_fruits.astype('float32') / 255.
 x_fruits = x_fruits.reshape((len(x_fruits), np.prod(x_fruits.shape[1:])))
 print("Normalize and flatten data...")
 print("x_fruits shape : " + str(x_fruits.shape))
+_fruits = random_sample(x_fruits, 1000)
 
-representatives = kohonen_maps(x_fruits[:1000], 15)
+nb_rep = 15
+representatives = kohonen_maps(x_fruits, nb_rep)
+map = build_map(nb_rep)
+#plt.scatter(*zip(*map), c="red")
+#plt.axis([0, 1, 0, 1])
+#plt.show()
+
+
 plt.figure(figsize=(40, 40))
 for i in range(len(representatives)):
       #display encoded images
       ax = plt.subplot(21, 20, i +1 )
-      plt.imshow(representatives[i].reshape(28, 28))
+      plt.imshow(representatives[i].reshape(28, 28), extent=[map[i][0],map[i][1], map[i][0],map[i][1]])
       plt.gray()
       ax.get_xaxis().set_visible(False)
       ax.get_yaxis().set_visible(False)

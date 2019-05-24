@@ -80,8 +80,25 @@ def test_pca_mnist():
     print("x_train shape : " + str(X.shape) + " | y_train shape : " + str(Y.shape))
     dataset = np.array(X)
     res, res2 = my_pca(dataset)
-    plt.scatter(res[:,0],res[:,1])
+    plt.scatter(res[:,0],res[:,1], c=Y)
     plt.show()
+
+def test_generate_pca_mnist():
+    import numpy as np, time, matplotlib.pyplot as plt
+    from keras.datasets import mnist
+    print("Loading data from Mnist...")
+    (X, Y), (_, _) = mnist.load_data()
+    # Normalise data
+    X = X.astype('float32') / 255.
+    # Flatten the data to have 784 inputs instead of 28x28
+    # x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
+    print("Normalize and flatten data...")
+    print("x_train shape : " + str(X.shape) + " | y_train shape : " + str(Y.shape))
+    dataset = np.array(X)
+    res, res2 = my_pca(dataset)
+    plt.scatter(res[:,0],res[:,1], c=Y)
+    plt.show()
+
 
 def test_pca_mnist_2():
     import numpy as np, matplotlib.pyplot as plt
@@ -92,12 +109,14 @@ def test_pca_mnist_2():
     # Normalise data
     x_train = x_train.astype('float32') / 255.
     x_train_min = []
+    y_train_min = []
     for i in range(60000):
         if y_train[i] == 0 or y_train[i] == 1:
             x_train_min.append(x_train[i])
+            y_train_min.append(y_train[i])
     dataset = np.array(x_train_min)
     res, res2 = my_pca(dataset)
-    plt.scatter(res[:,0],res[:,1])
+    plt.scatter(res[:,0],res[:,1], c=y_train_min)
     plt.show()
 
 all_test()

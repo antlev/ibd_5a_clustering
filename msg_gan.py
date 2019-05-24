@@ -110,10 +110,6 @@ def create_msg_model(data_shape_1, data_shape_2, data_shape_3, latent_space_dim 
     disc_5.trainable = False
     disc_6.trainable = False
 
-    print(gen_1_output.shape)
-    print(gen_2_output.shape)
-    print(gen_3_output.shape)
-
     gen_disc_output = \
         disc_6(disc_5(Concatenate()([gen_1_output,
             disc_4(Concatenate()([gen_2_output,
@@ -147,9 +143,9 @@ def my_msg_gan(data, data_2, data_3, n_iterations_on_disc=2, iterations_max=1000
       write_grads=True
     )
 
-    generator_and_discriminator_1, generator_1_model, discriminator_1_model, generator_and_discriminator_2, generator_2_model, discriminator_2_model, generator_and_discriminator_3, generator_3_model, discriminator_3_model = create_msg_model(data_shape_1, data_shape_2, data_shape_3, latent_space_dim)
+    gen_disc, gen_model, discriminator_model = create_msg_model(data_shape_1, data_shape_2, data_shape_3, latent_space_dim)
     discriminator_tensorboard.set_model(discriminator_model)
-    gen_disc_tensorboard.set_model(generator_and_discriminator)
+    gen_disc_tensorboard.set_model(gen_disc)
 
     iterations = 0
     if save_res:
@@ -161,29 +157,34 @@ def my_msg_gan(data, data_2, data_3, n_iterations_on_disc=2, iterations_max=1000
         file.write("iterations_max : " + str(iterations_max) + " - batch_size : " + str(
             batch_size) + " - latent_space_dim : " + str(latent_space_dim) + " - nb_data : " + str(nb_data) + "\n")
         file.write("GAN structure : \n")
-        file.write(str(generator_and_discriminator.summary()) + "\n")
+        file.write(str(gen_disc.summary()) + "\n")
         file.close()
 
     while iterations < iterations_max:
         print("iteration " + str(iterations))
         ### Discriminator Learning
-        # Take half of the batch in data
         real_data = np.zeros((int(batch_size / 2), data_shape_1))
-        for i in range(int(batch_size / 2)):
-            real_data[i] = data[random.randint(0, nb_data - 1)]
-        #     real_data[i] = np.random.choice((data, int(batch_size/2)))
+        for j in range(int(batch_size / 2)):
+            real_data[j] = data[random.randint(0, nb_data - 1)]
 
         # Generate half of the batch using generator
         rand_gen = np.random.random((int(batch_size / 2), latent_space_dim))
-        generated = generator_model.predict(rand_gen)
-        # Associates targets
-        real_data = np.asarray([[real_data[i], 1] for i in range((int(batch_size / 2)))])
-        generated = np.asarray([[generated[i], 0] for i in range((int(batch_size / 2)))])
+        generated = gen_model.predict(rand_gen)
+        print(np.asarray(generated[0][255]).shape)
+
+
         # Concatenate, shuffle and traning on generator
-        batch_to_train = np.concatenate((real_data, generated))
-        np.random.shuffle(batch_to_train)
-        batch_to_train_x = np.asarray([batch_to_train[i][0] for i in range(batch_size)])
-        batch_to_train_y = np.asarray([batch_to_train[i][1] for i in range(batch_size)])
+        batch_to_train_x = np.array((len(generated),1))
+        for j in range(len(generated)-1):
+            # Associates targets
+            real_data = np.asarray([[real_data[j][i], 1] for i in range((int(batch_size / 2)))])
+            generated = np.asarray([[generated[j][i], 0] for i in range((int(batch_size / 2)))])
+
+            generated[j] = np.asarray([[generated[j][i], 0] for i in range((int(batch_size / 2)))])
+            batch_to_train = np.concatenate((real_data, generated[j]))
+            np.random.shuffle(batch_to_train)
+            batch_to_train_x[j] = np.asarray([batch_to_train[j][i][0] for i in range(batch_size)])
+            batch_to_train_y = np.asarray([batch_to_train[i][1] for i in range(batch_size)])
         for i in range(n_iterations_on_disc):
             discriminator_logs = discriminator_model.train_on_batch(batch_to_train_x, batch_to_train_y)
             if i == 0:
@@ -194,9 +195,9 @@ def my_msg_gan(data, data_2, data_3, n_iterations_on_disc=2, iterations_max=1000
         gen_disc_tensorboard.on_epoch_end(iterations, named_logs(generator_and_discriminator, gen_disc_logs))
 
         if save_res and iterations%save_iter == 0:
-            generate_grid(generator_model, 10, latent_space_dim)
+            generate_grid(gen_model, 10, latent_space_dim)
             filename=str(int(time.time()))
-            np.save(folder + filename, generator_model.predict(np.random.rand(1, latent_space_dim)))
+            np.save(folder + filename, gen_model.predict(np.random.rand(1, latent_space_dim)))
             file = open(logs_info, "a+")
             file.write("file : " + filename + " - Iteration : %d\n" % iterations)
             file.close()
@@ -204,15 +205,15 @@ def my_msg_gan(data, data_2, data_3, n_iterations_on_disc=2, iterations_max=1000
     print("Time to finish : " + str(int(time.time()-seconds)) + " sec batch_size = " + str(batch_size) + " (iterations:" + str(iterations_max) + ")")
     if save_res:
         print("data generated from generator are saved in : " + folder)
-    generate_grid(generator_model, 10, latent_space_dim)
-    return generator_model, discriminator_model, generator_and_discriminator
+    generate_grid(gen_model, 10, latent_space_dim)
+    return gen_model, discriminator_model, gen_disc
 
 x_train_32 = np.resize(x_train, (x_train.shape[0], 32))
 x_train_64 = np.resize(x_train, (x_train.shape[0], 64))
 
 
 
-generator, discriminator, generator_and_discriminator = my_msg_gan(x_train,
+generator, discriminator, gen_disc = my_msg_gan(x_train,
                                                                x_train_64, 
                                                                x_train_32,
                                                                latent_space_dim=2,
@@ -222,5 +223,5 @@ generator, discriminator, generator_and_discriminator = my_msg_gan(x_train,
                                                                save_res=True,
                                                                save_iter=1000)
 
-# generate_grid(generator, 10, 2)
-# load_and_show(gan_folder="gan_1558610494"))
+generate_grid(generator, 10, 2)
+load_and_show(gan_folder="gan_1558610494")

@@ -24,6 +24,10 @@ def create_model(data_shape, latent_space_dim):
     # discriminator = BatchNormalization()(discriminator)
     discriminator = Dense(256)(discriminator)
     discriminator = LeakyReLU()(discriminator)
+    discriminator = Dense(256)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
+    discriminator = Dense(256)(discriminator)
+    discriminator = LeakyReLU()(discriminator)
     # discriminator = BatchNormalization()(discriminator)
     discriminator = Dense(128)(discriminator)
     discriminator = LeakyReLU()(discriminator)
@@ -48,6 +52,10 @@ def create_model(data_shape, latent_space_dim):
     generator = Dense(256)(generator)
     generator = LeakyReLU()(generator)
     # generator = BatchNormalization()(generator)
+    generator = Dense(256)(generator)
+    generator = LeakyReLU()(generator)
+    generator = Dense(256)(generator)
+    generator = LeakyReLU()(generator)
     generator = Dense(256)(generator)
     generator = LeakyReLU()(generator)
     # generator = BatchNormalization()(generator)
@@ -76,7 +84,7 @@ def named_logs(model, logs):
     return result
 
 
-def my_gan(data, n_iterations_on_disc=2, iterations_max=1000000, latent_space_dim=32, batch_size=256, save_res=False,
+def my_gan(data, n_iterations_on_disc=1, iterations_max=1000000, latent_space_dim=2, batch_size=32, save_res=False,
            save_iter=1000):
     seconds = int(time.time())
     nb_data = data.shape[0]
@@ -197,13 +205,19 @@ x_test = x_test.astype('float32') / 255.
 x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
 
-generator, discriminator, generator_and_discriminator = my_gan(x_train,
+
+x_fruits = np.load("test_images28.npy")
+x_fruits = x_fruits.astype('float32') / 255.
+x_fruits = x_fruits.reshape((len(x_fruits), np.prod(x_fruits.shape[1:])))
+
+
+generator, discriminator, generator_and_discriminator = my_gan(x_fruits,
                                                                latent_space_dim=2,
                                                                n_iterations_on_disc=5,
-                                                               iterations_max=100000,
+                                                               iterations_max=1000,
                                                                batch_size=512,
                                                                save_res=True,
-                                                               save_iter=1000)
+                                                               save_iter=100)
 
 generate_grid(generator, 10, 2)
 # load_and_show(gan_folder="gan_1558610494")

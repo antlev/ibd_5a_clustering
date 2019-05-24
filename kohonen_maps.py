@@ -167,7 +167,7 @@ def random_sample(data, nb_data):
 
 
 #Essai Dataset choisi : fruits
-x_fruits = np.load("../fruits/fruits-360/test_images28.npy")
+x_fruits = np.load("./test_images28.npy")
 x_fruits = x_fruits.astype('float32') / 255.
 x_fruits = x_fruits.reshape((len(x_fruits), np.prod(x_fruits.shape[1:])))
 print("Normalize and flatten data...")
@@ -185,7 +185,7 @@ map = build_map(nb_rep)
 plt.figure(figsize=(40, 40))
 for i in range(len(representatives)):
       #display encoded images
-      ax = plt.subplot(21, 20, i +1 )
+      ax = plt.subplot(15, 15, i +1 )
       plt.imshow(representatives[i].reshape(28, 28), extent=[map[i][0],map[i][1], map[i][0],map[i][1]])
       plt.gray()
       ax.get_xaxis().set_visible(False)

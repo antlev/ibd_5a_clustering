@@ -1,33 +1,95 @@
 import random
 import numpy as np
 from numpy.linalg import eigh
+import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
 def covariance_matrix(data):
     centered = (data - np.mean(data.T,axis=1).T)
     return np.matmul(centered.T, centered) / (data.shape[0] - 1)
 
-# def covariance(data):
-#     nb_var = data.shape[1] # Assuming all data has the same nb of cols
-#     nb_input = data.shape[0]
-#     covariance = np.zeros([nb_var,nb_var])
-#     moy_var1 = 0
-#     moy_var2 = 0
-#     for var_1 in range(nb_var):
-#         print(str(var_1))
-#         for var_2 in range(nb_var):
-#             print(str(var_2))
-#             for i in range(nb_input):
-#                 moy_var1 += data[i][var_1]
-#                 moy_var2 += data[i][var_2]
-#             moy_var1 /= nb_input
-#             moy_var2 /= nb_input
-#             for i in range(nb_input):
-#                 covariance[var_1,var_2] += (data[i][var_1] - moy_var1) * (data[i][var_2] - moy_var2)
-#             covariance[var_1,var_2] /= nb_input-1
-#             moy_var1 = 0
-#             moy_var2 = 0
-#     return covariance
+def euclidian_dist(input, centre):
+    sum = 0
+    for i in range(len(input)):
+        sum += pow(input[i] - centre[i], 2)
+    return np.sqrt(sum)
+
+def lloyd_algorithm(input_data,y, nb_Representatives, plot):
+    iterations = 0
+    representatives = np.zeros([nb_Representatives, len(input_data[0])])
+    iterations_max = 10
+
+    # Initialisation des centres
+    rds = []
+    for i in range(nb_Representatives):
+        rd = random.randint(0, len(input_data) - 1)
+        check_if_exists = True
+        while check_if_exists:
+            if rd not in rds:
+                check_if_exists = False
+                representatives[i] = input_data[rd]
+                rds.append(rd)
+            rd = random.randint(0, len(input_data) -1)
+    rds.clear()
+    if plot:
+        plt.scatter(*zip(*input_data))
+        plt.scatter(*zip(*representatives), c="red", marker='x')
+        plt.show()
+
+    # Répétition de l'algorithme
+    while iterations < iterations_max:
+
+        # Allocation au centre le plus proche
+        clusters = {}
+        distances = {}
+        for i in range(len(input_data)):
+            for j in range(len(representatives)):
+                distances[euclidian_dist(input_data[i], representatives[j])] = j
+            clusters[i] = distances[min(distances.keys())]
+            distances.clear()
+
+        #Recalcul des centres
+        sum_clusters = np.zeros([nb_Representatives, len(representatives[0]) + 1])
+        for i in range(len(input_data)):
+            for j in range(len(input_data[0])):
+                sum_clusters[clusters[i]][j] += input_data[i][j]
+            sum_clusters[clusters[i]][len(representatives[0])] += 1
+
+        old_representative = representatives
+        representatives = np.zeros([nb_Representatives, len(input_data[0])])
+        for i in range(len(sum_clusters)):
+            for j in range(len(sum_clusters[0])-1):
+                if sum_clusters[i][j] != 0:
+                    if sum_clusters[i][len(sum_clusters[i]) - 1] != 0:
+                        representatives[i][j] = sum_clusters[i][j] / sum_clusters[i][len(sum_clusters[i]) - 1]
+
+        # if plot:
+        #     plt.scatter(*zip(*input_data))
+        #     plt.scatter(*zip(*representatives), c="red")
+        #     plt.show()
+
+        # Comparaison ancien resultat / nouveau
+        if (representatives == old_representative).all():
+            if plot:
+                plt.scatter(*zip(*input_data), c=y)
+                plt.scatter(*zip(*representatives), c="red")
+                plt.show()
+            print("BREAK !!!")
+            return representatives
+
+        print("ITERATION ====== ")
+        # print(iterations)
+        # if plot:
+        #     plt.scatter(*zip(*input_data), c=y, marker="x")
+        #     plt.scatter(*zip(*representatives), c="red")
+        #     plt.show()
+        iterations += 1
+    if plot:
+        plt.scatter(*zip(*input_data), c=y)
+        plt.scatter(*zip(*representatives), c="red", marker="x")
+        plt.show()
+    return  representatives
+
 
 def my_pca(data, n_components=2):
     if len(data.shape) > 2:
@@ -66,6 +128,7 @@ def all_test():
     test_pca()
     test_pca_mnist_2()
     test_pca_mnist()
+    test_pca_fruit_dataset
 
 def test_pca_mnist():
     import numpy as np, time, matplotlib.pyplot as plt
@@ -99,6 +162,38 @@ def test_generate_pca_mnist():
     plt.scatter(res[:,0],res[:,1], c=Y)
     plt.show()
 
+def test_pca_fruit_dataset():
+    x_fruits = np.load("test_images28.npy")
+    x_fruits = x_fruits.astype('float32') / 255.
+    x_fruits = x_fruits.reshape((len(x_fruits), np.prod(x_fruits.shape[1:])))
+    print("Normalize and flatten data...")
+    print("x_fruits shape : " + str(x_fruits.shape))
+    print(len(x_fruits))
+    res, res2 = my_pca(x_fruits[:1000])
+    plt.scatter(res[:,0],res[:,1])
+    plt.show()
+    res, res2 = my_pca(x_fruits[:10000])
+    plt.scatter(res[:,0],res[:,1])
+    plt.show()
+    res, res2 = my_pca(x_fruits)
+    plt.scatter(res[:,0],res[:,1])
+    plt.show()
+
+
+def test_pca_kmeans_fruit_dataset():
+    x_fruits = np.load("test_images28.npy")
+    y_fruits = np.load("test_labels28.npy")
+    x_fruits = x_fruits.astype('float32') / 255.
+    x_fruits = x_fruits.reshape((len(x_fruits), np.prod(x_fruits.shape[1:])))
+    print("Normalize and flatten data...")
+    print("x_fruits shape : " + str(x_fruits.shape))
+    print(len(x_fruits))
+    # res, res2 = my_pca(x_fruits[:1000])
+    # lloyd_algorithm(res, 103, True)
+    # res, res2 = my_pca(x_fruits[:10000])
+    # lloyd_algorithm(res, 103, True)
+    res, res2 = my_pca(x_fruits)
+    lloyd_algorithm(res,y_fruits, 103, True)
 
 def test_pca_mnist_2():
     import numpy as np, matplotlib.pyplot as plt
@@ -119,4 +214,5 @@ def test_pca_mnist_2():
     plt.scatter(res[:,0],res[:,1], c=y_train_min)
     plt.show()
 
-all_test()
+# all_test()
+test_pca_kmeans_fruit_dataset()

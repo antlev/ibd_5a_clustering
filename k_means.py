@@ -93,7 +93,13 @@ print("x_test shape : " + str(x_test.shape) + " | y_test shape : " + str(y_test.
 
 x_tt = [[25, 79], [34, 51], [22, 53], [27, 78], [33, 59], [33, 74], [31, 73], [22, 57], [35, 69], [34, 75], [67, 51], [54, 32], [57, 40], [43, 47], [50, 53], [57, 36], [59, 35], [52, 58], [65, 59], [47, 50], [49, 25], [48, 20], [35, 14], [33, 12], [44, 20], [45, 5], [38, 29], [43, 27], [51, 8], [46, 7]]
 
-lloyd_algorithm(x_tt, 4, True)
+x_fruits = np.load("test_images28.npy")
+x_fruits = x_fruits.astype('float32') / 255.
+x_fruits = x_fruits.reshape((len(x_fruits), np.prod(x_fruits.shape[1:])))
+print("Normalize and flatten data...")
+print("x_fruits shape : " + str(x_fruits.shape))
+
+lloyd_algorithm(x_fruits,103, True)
 
 # representatives = lloyd_algorithm(x_train[:1000], 12, False)
 # plt.figure(figsize=(40, 4))
